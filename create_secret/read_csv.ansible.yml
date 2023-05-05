@@ -1,0 +1,51 @@
+- name: "Playing with Ansible and Git"
+  hosts: localhost
+  connection: local 
+# Example CSV file with header
+#
+#   name,uid,gid
+#   dag,500,500
+#   jeroen,501,500
+
+# Read a CSV file and access user 'dag'
+  tasks:
+  - name: Read users from CSV file and return a dictionary
+    community.general.read_csv:
+      path: prova.csv
+      key: name
+    register: users
+    delegate_to: localhost
+
+  - ansible.builtin.debug:
+      msg: 'User {{ users.dict.dag.name }} has UID {{ users.dict.dag.uid }} and GID {{ users.dict.dag.gid }}'
+
+  # Read a CSV file and access the first item
+  - name: Read users from CSV file and return a list
+    community.general.read_csv:
+      path: prova.csv
+    register: users
+    delegate_to: localhost
+
+  - ansible.builtin.debug:
+      msg: 'User {{ users.list.1.name }} has UID {{ users.list.1.uid }} and GID {{ users.list.1.gid }}'
+
+  # Read a CSV file and print the entire lists
+  - name: Display users
+    debug:
+      msg: "{{ item }}"
+    with_items:
+      - "{{ users.list }}"
+
+  # Example CSV file without header and semi-colon delimiter
+  #
+  #   dag;500;500
+  #   jeroen;501;500
+
+  # Read a CSV file without headers
+  - name: Read users from CSV file and return a list
+    community.general.read_csv:
+      path: prova.csv
+      fieldnames: name,uid,gid
+      delimiter: ';'
+    register: users
+    delegate_to: localhost
