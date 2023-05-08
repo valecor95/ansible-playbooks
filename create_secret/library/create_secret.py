@@ -19,9 +19,9 @@ SECRET_BASE = {
     }
 }
 
-def createSecret():
+def createSecret(src_file):
     secrets = {}
-    with open('secrets.csv') as csvfile:
+    with open(src_file) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if row["SECRET_NAME"] not in secrets:
@@ -34,18 +34,16 @@ def createSecret():
                 #secrets[row["SECRET_NAME"]]["data"][row["SECRET_KEY_REF"]] = str(base64.b64encode(bytes(row["SECRET_KEY_VALUE"], 'utf-8')), 'utf-8')
                 secrets[row["SECRET_NAME"]]["stringData"][row["SECRET_KEY_REF"]] = row["SECRET_KEY_VALUE"]
 
-    for key, secret in secrets.items():
-        #print(secret)
-        f = open('secrets.yaml', 'a+')
-        yaml.dump(secret, f, allow_unicode=True)
-        f.write("---\n")
-
     return secrets
     
 def main():
-    module = AnsibleModule(argument_spec={})
-    secrets = createSecret()
-    module.exit_json(changed=False, meta=secrets)
+    fields = {
+        "src": {"default": True, "type": "str"}
+    }
+    module = AnsibleModule(argument_spec=fields)
+    src_file = str(module.params["src"])
+    secrets = createSecret(src_file)
+    module.exit_json(changed=False, data=secrets)
 
 if __name__ == '__main__':
     main()
